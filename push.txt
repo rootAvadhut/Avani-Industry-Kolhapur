@@ -1,0 +1,10 @@
+git add .
+git commit -m "your message"
+git push origin main
+
+if push is not working 
+git fetch origin
+git add .
+git pull origin main
+git push origin main
+git push origin main --force
