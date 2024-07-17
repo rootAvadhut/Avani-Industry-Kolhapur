@@ -8,3 +8,31 @@ git add .
 git pull origin main
 git push origin main
 git push origin main --force
+
+The error you're encountering occurs because the remote repository has changes that your local repository does not have. To resolve this, you need to pull the latest changes from the remote repository and then push your changes. Here's how you can do it:
+
+1. **Open your terminal** and navigate to your local repository:
+   ```sh
+   cd path/to/your/local/repo
+   ```
+
+2. **Pull the latest changes from the remote repository**:
+   ```sh
+   git pull origin main
+   ```
+
+   If there are any conflicts during the pull, you will need to resolve them before proceeding.
+
+3. **Push your changes** after pulling the latest updates:
+   ```sh
+   git push origin main
+   ```
+
+If you still encounter issues, you might need to force push, but be cautious as it can overwrite changes in the remote repository:
+
+4. **Force push (if necessary)**:
+   ```sh
+   git push origin main --force
+   ```
+
+Use force push with caution, as it can potentially overwrite changes on the remote repository. It's best to use this option only if you are certain that your local changes are correct and up-to-date.
