@@ -1,35 +1,32 @@
-# Add the import for messagebox
-# from imports import tk, ttk, tkFont, DateEntry, messagebox, show_home_screen,show_delete_screen
-from imports import tk, ttk, tkFont, DateEntry,show_home_screen,show_delete_screen  
+from imports import tk, ttk, tkFont, DateEntry, show_home_screen, show_delete_screen
 
-
-# Create main window
 root = tk.Tk()
 root.title("Data Interface")
-root.geometry("800x600")  # Set initial window size
+root.geometry("800x600")
 
-# Define custom font for consistent styling
-custom_font = tkFont.Font(family="Helvetica", size=10) 
+custom_font = tkFont.Font(family="Helvetica", size=10)  # Slightly larger font for better readability
 
-# Create frame for left-side navigation buttons
-button_frame = tk.Frame(root)
+button_frame = tk.Frame(root, width=120)  # Fixed width for the button frame
 button_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
-# Home button (display the home screen)
-# Create the "Home" button. When clicked, it calls the show_home_screen function to display the home screen content within the main_frame.
-report_button = tk.Button(button_frame, text="HOME", command=lambda: show_home_screen(main_frame), width=10, height=1, font=custom_font)
-report_button.pack(pady=10, fill=tk.X)
+def switch_screen(screen_function):
+    """Utility function to switch between screens smoothly"""
+    for widget in main_frame.winfo_children():
+        widget.destroy()
+    screen_function(main_frame)
 
-# Delete button (display the delete screen)
-delete_button = tk.Button(button_frame, text="DELETE", command=lambda: show_delete_screen(main_frame), width=10, height=1, font=custom_font)
-delete_button.pack(pady=10, fill=tk.X)
+report_button = tk.Button(button_frame, text="HOME", command=lambda: switch_screen(show_home_screen), 
+                         width=10, height=1, font=custom_font)  # Increased height for the buttons
+report_button.pack(pady=10)
 
-# Main content area (where the screens will be displayed)
+delete_button = tk.Button(button_frame, text="DELETE", command=lambda: switch_screen(show_delete_screen), 
+                         width=10, height=1, font=custom_font)
+delete_button.pack(pady=10)
+
 main_frame = tk.Frame(root)
 main_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-# Start by displaying the home screen
+# Initial screen:
 show_home_screen(main_frame) 
 
-# Start the Tkinter event loop
 root.mainloop() 

@@ -1,7 +1,6 @@
+#delete_screen.py
 import tkinter.messagebox as messagebox
 from imports import tk, ttk, tkFont, DateEntry
-
-
 
 def show_delete_screen(main_frame):
     """
