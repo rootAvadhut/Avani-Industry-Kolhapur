@@ -4,7 +4,8 @@ root = tk.Tk()
 root.title("Data Interface")
 root.geometry("800x600")
 
-custom_font = tkFont.Font(family="Helvetica", size=10)  # Slightly larger font for better readability
+custom_font = tkFont.Font(family="Helvetica", size
+                          =10)  # Slightly larger font for better readability
 
 button_frame = tk.Frame(root, width=120)  # Fixed width for the button frame
 button_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)

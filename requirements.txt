@@ -1,2 +1,4 @@
 tkcalendar
 pymongo
+pandas  
+openpyxl

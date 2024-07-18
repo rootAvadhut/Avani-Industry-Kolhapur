@@ -1,5 +1,5 @@
 git add .
-git commit -m "your message"
+git commit -m "todays commit"
 git push origin main
 
 if push is not working 
