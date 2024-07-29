@@ -18,3 +18,4 @@ data_list = df.to_dict(orient='records')
 
 # Print the list of dictionaries (ready for MongoDB insertion)
 print(data_list)
+
