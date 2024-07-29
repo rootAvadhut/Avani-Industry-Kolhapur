@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 # Path to the uploaded Excel file
-file_path = 'import/test_gear.xlsx'
+file_path = 'import/import_gear.xlsx'
 output_file_path = 'temp/gear_data.csv'
 
 # Expected columns based on the new specification
