@@ -1,10 +1,10 @@
 from imports import tk, ttk, tkFont, DateEntry, pd, datetime, messagebox
 from create_treeview import create_treeview_frame
 # from search_body_no import search_by_body_no
-from db_connection import get_db_collection
+from db_connection import get_backup_db_collection
 import os
 
-def show_home_screen(main_frame):
+def show_backup_screen(main_frame):
     """
     This function creates and displays the "Home" screen within the provided main_frame.
     """
@@ -64,7 +64,7 @@ def show_home_screen(main_frame):
     def search_date():
         start_date = start_date_entry.get()
         end_date = end_date_entry.get()
-        print(start_date)
+        
 
         if not start_date or not end_date:
             messagebox.showerror("Error", "Please select both start and end dates")
@@ -72,7 +72,7 @@ def show_home_screen(main_frame):
 
         try:
             # Get the MongoDB collection
-            collection = get_db_collection()
+            collection = get_backup_db_collection()
 
             # Query the database for records within the date range
             query = {"Insertion Date": {"$gte": start_date, "$lte": end_date}}
@@ -86,10 +86,10 @@ def show_home_screen(main_frame):
                 return
         
             # Save the DataFrame to a CSV file
-            df.to_csv('temp/date_data.csv', index=False)
+            df.to_csv('temp/backup_date_data.csv', index=False)
 
             # Update the treeview with the new data
-            create_treeview_frame(main_frame, 'temp/date_data.csv')
+            create_treeview_frame(main_frame, 'temp/backup_date_data.csv')
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
@@ -107,7 +107,7 @@ def show_home_screen(main_frame):
 
         try:
             # Get the MongoDB collection
-            collection = get_db_collection()
+            collection = get_backup_db_collection()
 
             # Query the database for records within the date range
             query = {"Insertion Date": {"$gte": start_date, "$lte": end_date}}
@@ -133,7 +133,7 @@ def show_home_screen(main_frame):
             df['Box No'] = pd.to_numeric(df['Box No'], errors='coerce').fillna(0).astype(int)
 
             # Ensure the export directory exists
-            export_dir = r'E:\project_3\16-07-2024\project\export'
+            export_dir = r'E:\project_3\16-07-2024\project\backup-export'
             os.makedirs(export_dir, exist_ok=True)
 
             # Create the file paths with the current date
@@ -157,16 +157,17 @@ def show_home_screen(main_frame):
     export_button.grid(row=2, column=4, padx=5, pady=5, sticky="e")
 
     # Data Table (Treeview)
-    file_path = r'E:\project_3\16-07-2024\project\temp\home_default_data.csv'
+    file_path = r'E:\project_3\16-07-2024\project\temp\backup_default_data.csv'
     treeview_frame = create_treeview_frame(main_frame, file_path)
 
     # Configure grid layout for resizing
     main_frame.grid_rowconfigure(3, weight=1)
     main_frame.grid_columnconfigure(4, weight=1)
 
+
 def search_by_body_no(body_no, main_frame):
     # Get the MongoDB collection
-    collection = get_db_collection()
+    collection = get_backup_db_collection()
     
     try:
         body_no_int = int(body_no)  # Convert body_no to integer
@@ -193,4 +194,5 @@ def search_by_body_no(body_no, main_frame):
 
     # Create the treeview with the new data
     create_treeview_frame(main_frame, file_path)
+
 

@@ -7,6 +7,13 @@ def create_treeview_frame(parent, file_path):
     # Select the specified columns
     selected_columns = ["Date", "Time", "BODY", "COVER", "12T NB", "12T WB", "26T", "28T", "LPM", "WP1", "BP1", "BP2", "Noise", "Box No"]
     data = data[selected_columns]
+        # Ensure specific columns are strings and handle scientific notation
+    string_columns = ['12T NB', '12T WB', '26T', '28T']
+    for col in string_columns:
+        data[col] = data[col].apply(lambda x: "{:.0E}".format(x).replace("+", "") if isinstance(x, (int, float)) else str(x))
+    # Ensure 'Box No' column is an integer
+    data['Box No'] = pd.to_numeric(data['Box No'], errors='coerce').fillna(0).astype(int)
+
 
     # Create a frame to hold the Treeview and scrollbars
     frame = ttk.Frame(parent)

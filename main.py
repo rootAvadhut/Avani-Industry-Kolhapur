@@ -1,4 +1,4 @@
-from imports import tk, ttk, tkFont, DateEntry, show_home_screen, show_delete_screen
+from imports import tk, tkFont, show_home_screen, show_delete_screen, show_import_screen,show_backup_screen
 
 root = tk.Tk()
 root.title("Data Interface")
@@ -23,6 +23,14 @@ delete_button = tk.Button(button_frame, text="DELETE", command=lambda: switch_sc
                          width=10, height=1, font=custom_font)
 delete_button.pack(pady=10)
 
+import_button = tk.Button(button_frame, text="IMPORT", command=lambda: switch_screen(show_import_screen), 
+                         width=10, height=1, font=custom_font)
+import_button.pack(pady=10)
+
+backup_button = tk.Button(button_frame, text="BACKUP", command=lambda: switch_screen(show_backup_screen), 
+                         width=10, height=1, font=custom_font)
+backup_button.pack(pady=10)
+
 main_frame = tk.Frame(root)
 main_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -30,4 +38,3 @@ main_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 show_home_screen(main_frame) 
 
 root.mainloop()
-
