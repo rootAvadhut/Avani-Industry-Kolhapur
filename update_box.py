@@ -1,8 +1,8 @@
+#update_box.py
 import pandas as pd
 from pymongo import MongoClient
 from db_connection import get_db_collection
-import tkinter as tk
-from tkinter import messagebox
+
 excel_file_path = r"E:\project_3\16-07-2024\project\import\import_box.xlsx"
 
 def load_data():
@@ -29,11 +29,11 @@ def update_box_data(data=None):
             {"BODY": body},
             {"$set": {"Box No": box_no}}
         )
-    # Show a popup message indicating successful import
-    root = tk.Tk()
-    root.withdraw()  # Hide the root window
-    messagebox.showinfo("Success", "Box No import successful")
-    root.destroy()  # Close the Tkinter root window
+    # # Show a popup message indicating successful import
+    # root = tk.Tk()
+    # root.withdraw()  # Hide the root window
+    # messagebox.showinfo("Success", "Box No import successful")
+    # root.destroy()  # Close the Tkinter root window
     print("Box data updated successfully.")
 
 if __name__ == "__main__":
