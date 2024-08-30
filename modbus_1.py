@@ -39,7 +39,6 @@ async def run_modbus_client():
                     noise = await read_register(client, 2016)
                     if noise:
                         print("Noise", noise[0] / 100)    
-
                     body_no = await read_register(client, 2004, 2)
                     if body_no:
                         msb, lsb = body_no
