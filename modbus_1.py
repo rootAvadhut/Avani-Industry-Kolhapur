@@ -29,10 +29,6 @@ async def run_modbus_client():
                     if wp:
                         print("WP", wp[0])
 
-                    noise = await read_register(client, 2016)
-                    if noise:
-                        print("Noise", noise[0] / 100)
-
                     bp1 = await read_register(client, 2030)
                     if bp1:
                         print("BP1", bp1[0])
@@ -40,6 +36,9 @@ async def run_modbus_client():
                     bp2 = await read_register(client, 2032)
                     if bp2:
                         print("BP2", bp2[0])
+                    noise = await read_register(client, 2016)
+                    if noise:
+                        print("Noise", noise[0] / 100)    
 
                     body_no = await read_register(client, 2004, 2)
                     if body_no:
