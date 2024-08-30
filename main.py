@@ -4,16 +4,16 @@ import tkinter as tk  # Import tkinter for GUI
 import tkinter.font as tkFont  # Import tkinter font for custom fonts in GUI
 from tkinter import messagebox  # Import messagebox to show error dialogs
 from imports import show_home_screen, show_delete_screen, show_backup_screen  # Import custom functions for different screens
+from db_and_update_box import monitor_files  # Import monitor_files from db_and_update_box
+
+# Create an event to signal the background thread to stop
+stop_event = threading.Event()
 
 # Function to run the background script
 def run_background_script():
     try:
-        # Check if the background script exists
-        if not os.path.exists('db_and_update_box.py'):
-            raise FileNotFoundError("Background script 'db_and_update_box.py' not found.")
-        
-        # Run the background script using os.system
-        os.system("python db_and_update_box.py")
+        # Run the background script while checking for the stop event
+        monitor_files(stop_event)
     except Exception as e:
         # Print the error to console and show an error message in the GUI
         print(f"Error in background script: {e}")
@@ -29,6 +29,15 @@ except Exception as e:
     # Print the error to console and show an error message if the thread fails to start
     print(f"Failed to start background thread: {e}")
     messagebox.showerror("Error", f"Failed to start background process: {str(e)}")
+
+# Function to handle closing the GUI
+def on_close():
+    # Set the stop event to signal the thread to stop
+    stop_event.set()
+    # Wait for the thread to finish
+    background_thread.join()
+    # Destroy the GUI window
+    root.destroy()
 
 # Initialize the main tkinter window
 root = tk.Tk()
@@ -101,6 +110,9 @@ except Exception as e:
     # Print the error and show an error message if GUI initialization fails
     print(f"Error initializing GUI: {e}")
     messagebox.showerror("Error", f"An error occurred while initializing the GUI: {str(e)}")
+
+# Bind the on_close function to the window close event
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 # Start the tkinter main loop to keep the GUI running
 root.mainloop()

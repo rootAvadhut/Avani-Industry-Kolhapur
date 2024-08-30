@@ -1,3 +1,4 @@
+import threading
 import pandas as pd
 from datetime import datetime
 import os
@@ -118,14 +119,14 @@ def update_box_data(data=None):
         )
     print("Box data updated successfully.")
 
-def monitor_files():
+def monitor_files(stop_event):
     """
     Monitor the Excel files for changes and process new data if the files change.
     """
     gear_last_modified_time = None
     box_last_modified_time = None
 
-    while True:
+    while not stop_event.is_set():
         try:
             # Check if the gear file has been modified
             current_gear_modified_time = os.path.getmtime(gear_file_path)
@@ -154,4 +155,5 @@ def monitor_files():
             time.sleep(5)
 
 if __name__ == "__main__":
-    monitor_files()
+    stop_event = threading.Event()
+    monitor_files(stop_event)
