@@ -1,0 +1,17 @@
+old)
+body_no 2408063
+cover_no 724311
+LPM 74.26
+WP 257   
+Noise 82.0
+BP1 333
+BP2 335
+
+1)
+LPM 74.26
+WP 257   
+BP1 333
+BP2 335
+Noise 82.0        
+body_no 3195994148
+cover_no 223805451

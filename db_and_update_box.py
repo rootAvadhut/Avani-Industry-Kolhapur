@@ -7,7 +7,7 @@ from db_connection import get_db_collection
 
 # Paths to the uploaded Excel files
 gear_file_path = 'import/import_gear.xlsx'
-box_file_path = r"E:\project_3\16-07-2024\project\import\import_box.xlsx"
+box_file_path = 'import/import_box.xlsx'
 output_file_path = 'temp/gear_data.csv'
 
 # Expected columns based on the new specification
