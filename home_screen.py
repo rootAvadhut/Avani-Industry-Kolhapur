@@ -74,7 +74,7 @@ def show_home_screen(main_frame):
             collection = get_db_collection()
 
             # Query the database for records within the date range
-            query = {"Date": {"$gte": start_date, "$lte": end_date}}
+            query = {"Insertion Date": {"$gte": start_date, "$lte": end_date}}
             cursor = collection.find(query)
 
             # Convert cursor to DataFrame

@@ -1,56 +1,31 @@
 import asyncio
-import threading
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ConnectionException
 from datetime import datetime
-import os
 from db_connection import get_db_collection
-import logging
-# logger = logging.getLogger('modbus')
+import os
 
-
-
-# Configure logging
+# Replace logging with print statements for faster performance
 log_file_path = 'app_logs/modbus_data.log'
 os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
-
-# logger = logging.getLogger('modbus')
-# logger.setLevel(logging.INFO)
-# log_file_path = './app_logs/modbus_data.log'
-# log_dir=os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-# if log_dir:
-#     os.makedirs(log_dir, exist_ok=True)
-
-# handler = logging.FileHandler(log_file_path)
-# formatter = logging.Formatter('%(asctime)s - %(message)s')
-# handler.setFormatter(formatter)
-
-# logger.addHandler(handler)
-
 
 def update_mongodb(data_list):
     """
     Updates the MongoDB collection with values from the data_list based on the BODY field.
-    
-    Parameters:
-    data_list (list): A list containing 'Date', 'Time', 'BODY', 'COVER', 'LPM', 'WP1', 'BP1', 'BP2', 'Noise'.
     """
-    # Connect to the MongoDB collection
     collection = get_db_collection()
     
     # Extract values from data_list
     date_str = data_list[0]
     time_str = data_list[1]
     body = data_list[2]
-    cover = data_list[3]  # This is still in the list but not used for filtering
+    cover = data_list[3]
     lpm = data_list[4]
     wp1 = data_list[5]
     bp1 = data_list[6]
     bp2 = data_list[7]
     noise = data_list[8]
     
-    # Create an update document with the new values
     update_document = {
         'Date': date_str,
         'Time': time_str,
@@ -61,39 +36,33 @@ def update_mongodb(data_list):
         'Noise': noise
     }
     
-    # Update the document in MongoDB based on BODY
-    result = collection.update_one(
-        {'BODY': body},   # Filter by BODY only
-        {'$set': update_document},  # Update fields
-        upsert=False      # Only update existing documents
-    )
+    result = collection.update_one({'BODY': body}, {'$set': update_document}, upsert=False)
     
     if result.matched_count > 0:
-        logging.info(f"Document with BODY {body} updated successfully.")
+        print(f"Document with BODY {body} updated successfully.")
     else:
-        logging.error(f"No document found with BODY {body}.")
-
+        print(f"No document found with BODY {body}.")
 
 async def read_register(client, address, count=1):
     try:
         result = await client.read_holding_registers(address, count)
         if result.isError():
-            logging.error(f"Error reading registers from address {address}: {result}")
+            print(f"Error reading registers from address {address}: {result}")
             return None
         return result.registers
     except ConnectionException as e:
-        logging.error(f"Connection error when reading register {address}: {e}")
+        print(f"Connection error when reading register {address}: {e}")
         return None
 
 async def write_register(client, address, value):
     try:
         result = await client.write_register(address, value)
         if result.isError():
-            logging.error(f"Error writing to register {address}: {result}")
+            print(f"Error writing to register {address}: {result}")
         else:
-            logging.info(f"Successfully wrote value {value} to register {address}")
+            print(f"Successfully wrote value {value} to register {address}")
     except ConnectionException as e:
-        logging.error(f"Connection error when writing to register {address}: {e}")
+        print(f"Connection error when writing to register {address}: {e}")
 
 def bit16_to_32(msb, lsb):
     a = (msb << 16) + lsb
@@ -127,17 +96,11 @@ async def run_modbus_client(stop_event):
                         lsb_cover = cover.registers[0]
                         Cover = bit16_to_32(msb_cover, lsb_cover)
 
-                        # Log the values
-                        logging.info(f"LPM: {LPM}")
-                        logging.info(f"WP1: {WP1}")
-                        logging.info(f"BP1: {BP1}")
-                        logging.info(f"BP2: {BP2}")
-                        logging.info(f"Noise: {Noise}")
-                        logging.info(f"BODY: {Body}")
-                        logging.info(f"COVER: {Cover}")
+                        # Print the captured data
+                        print(f"LPM: {LPM}, WP1: {WP1}, BP1: {BP1}, BP2: {BP2}, Noise: {Noise}, BODY: {Body}, COVER: {Cover}")
 
                         # Data captured
-                        logging.info("Data captured")
+                        print("Data captured")
 
                         # Create Date and Time variables
                         Date = datetime.now().strftime('%Y-%m-%d')
@@ -145,7 +108,7 @@ async def run_modbus_client(stop_event):
 
                         # Create a list and log the Date and Time
                         data_list = [Date, Time, Body, Cover, LPM, WP1, BP1, BP2, Noise]
-                        logging.info(f"Date: {Date}, Time: {Time}")
+                        print(f"Date: {Date}, Time: {Time}")
 
                         # Update MongoDB
                         update_mongodb(data_list)
@@ -156,16 +119,8 @@ async def run_modbus_client(stop_event):
                 await asyncio.sleep(1)
 
     except ConnectionException as e:
-        logging.error(f"Connection to PLC failed: {e}")
+        print(f"Connection to PLC failed: {e}")
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
     finally:
-        logging.info("Modbus client stopped.")
-
-if __name__ == "__main__":
-    stop_event = threading.Event()
-    try:
-        asyncio.run(run_modbus_client(stop_event))
-    except KeyboardInterrupt:
-        stop_event.set()
-        logging.info("Modbus client stopped.")
+        print("Modbus client stopped.")

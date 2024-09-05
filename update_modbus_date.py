@@ -51,7 +51,7 @@ def update_mongodb(data_list):
 data_list = [
     '2024-09-04',  # Date
     '07:58',  # Time
-   2406089,  # BODY
+   24061691,  # BODY
    2406089,  # COVER
     724311,  # LPM
     74.26,  # WP1
