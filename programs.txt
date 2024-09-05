@@ -1,0 +1,456 @@
+#main.py
+
+import threading
+import os
+import tkinter as tk
+import tkinter.font as tkFont
+from tkinter import messagebox
+from imports import show_home_screen, show_delete_screen, show_backup_screen
+from db_and_update_box import monitor_files
+import logging
+import sys
+from modbus import run_modbus_client
+
+# Configure logging for main.py
+log_file_path = 'app_logs/main_app.log'
+os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
+
+# Redirect stdout and stderr to the log file
+class LogRedirector:
+    def __init__(self, logger):
+        self.logger = logger
+
+    def write(self, message):
+        if message.strip():
+            self.logger.info(message.strip())
+
+    def flush(self):
+        pass
+
+sys.stdout = LogRedirector(logging)
+sys.stderr = LogRedirector(logging)
+
+# Create an event to signal the background thread to stop
+stop_event = threading.Event()
+
+def run_modbus_script():
+    try:
+        # Run the background script while checking for the stop event
+        run_modbus_client(stop_event)
+    except Exception as e:
+        logging.error(f"Error in run_modbus_client: {e}")
+        messagebox.showerror("Error", f"An error occurred in the background Modbus process: {str(e)}")
+
+def run_background_script():
+    try:
+        # Run the background script while checking for the stop event
+        monitor_files(stop_event)
+    except Exception as e:
+        logging.error(f"Error in background script: {e}")
+        messagebox.showerror("Error", f"An error occurred in the background process: {str(e)}")
+
+# Start the background scripts in separate threads
+try:
+    modbus_thread = threading.Thread(target=run_modbus_script)
+    modbus_thread.daemon = True
+    modbus_thread.start()
+
+    background_thread = threading.Thread(target=run_background_script)
+    background_thread.daemon = True
+    background_thread.start()
+except Exception as e:
+    logging.error(f"Failed to start background thread(s): {e}")
+    messagebox.showerror("Error", f"Failed to start background process(es): {str(e)}")
+
+# Function to handle closing the GUI
+def on_close():
+    stop_event.set()
+    modbus_thread.join()
+    background_thread.join()
+    root.destroy()
+
+# Initialize the main tkinter window
+root = tk.Tk()
+root.title("Data Interface")
+root.geometry("800x600")
+logging.info("the main.py file")
+
+# Set custom font for buttons
+custom_font = tkFont.Font(family="Helvetica", size=10)
+
+# Create a frame on the left side for buttons
+button_frame = tk.Frame(root, width=120)
+button_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+
+current_highlighted_button = None
+
+# Function to switch between different screens in the main frame
+def switch_screen(screen_function):
+    for widget in main_frame.winfo_children():
+        widget.destroy()
+    try:
+        screen_function(main_frame)
+    except Exception as e:
+        logging.error(f"Error while switching screen: {e}")
+        messagebox.showerror("Error", f"An error occurred while switching screens: {str(e)}")
+
+# Function to handle button clicks and switch screens
+def handle_button_click(button, screen_function):
+    global current_highlighted_button
+    if current_highlighted_button:
+        current_highlighted_button.config(bg="SystemButtonFace")
+    button.config(bg="gray")
+    current_highlighted_button = button
+    switch_screen(screen_function)
+
+try:
+    report_button = tk.Button(button_frame, text="HOME", command=lambda: handle_button_click(report_button, show_home_screen), 
+                             width=10, height=1, font=custom_font, bg="gray")
+    report_button.pack(pady=10)
+
+    current_highlighted_button = report_button
+
+    delete_button = tk.Button(button_frame, text="DELETE", command=lambda: handle_button_click(delete_button, show_delete_screen), 
+                             width=10, height=1, font=custom_font)
+    delete_button.pack(pady=10)
+
+    backup_button = tk.Button(button_frame, text="BACKUP", command=lambda: handle_button_click(backup_button, show_backup_screen), 
+                             width=10, height=1, font=custom_font)
+    backup_button.pack(pady=10)
+
+    main_frame = tk.Frame(root)
+    main_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    show_home_screen(main_frame)
+
+except Exception as e:
+    logging.error(f"Error initializing GUI: {e}")
+    messagebox.showerror("Error", f"An error occurred while initializing the GUI: {str(e)}")
+
+root.protocol("WM_DELETE_WINDOW", on_close)
+root.mainloop()
+#===================================================================================
+#modbus.py
+import asyncio
+import logging
+import threading
+from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.exceptions import ConnectionException
+from datetime import datetime
+import os
+from db_connection import get_db_collection
+
+
+# Configure logging
+log_file_path = 'app_logs/modbus_data.log'
+os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
+
+
+
+def update_mongodb(data_list):
+    """
+    Updates the MongoDB collection with values from the data_list based on the BODY field.
+    
+    Parameters:
+    data_list (list): A list containing 'Date', 'Time', 'BODY', 'COVER', 'LPM', 'WP1', 'BP1', 'BP2', 'Noise'.
+    """
+    # Connect to the MongoDB collection
+    collection = get_db_collection()
+    
+    # Extract values from data_list
+    date_str = data_list[0]
+    time_str = data_list[1]
+    body = data_list[2]
+    cover = data_list[3]  # This is still in the list but not used for filtering
+    lpm = data_list[4]
+    wp1 = data_list[5]
+    bp1 = data_list[6]
+    bp2 = data_list[7]
+    noise = data_list[8]
+    
+    # Create an update document with the new values
+    update_document = {
+        'Date': date_str,
+        'Time': time_str,
+        'LPM': lpm,
+        'WP1': wp1,
+        'BP1': bp1,
+        'BP2': bp2,
+        'Noise': noise
+    }
+    
+    # Update the document in MongoDB based on BODY
+    result = collection.update_one(
+        {'BODY': body},   # Filter by BODY only
+        {'$set': update_document},  # Update fields
+        upsert=False      # Only update existing documents
+    )
+    
+    if result.matched_count > 0:
+        logging.info(f"Document with BODY {body} updated successfully.")
+    else:
+        logging.error(f"No document found with BODY {body}.")
+
+
+async def read_register(client, address, count=1):
+    try:
+        result = await client.read_holding_registers(address, count)
+        if result.isError():
+            logging.error(f"Error reading registers from address {address}: {result}")
+            return None
+        return result.registers
+    except ConnectionException as e:
+        logging.error(f"Connection error when reading register {address}: {e}")
+        return None
+
+async def write_register(client, address, value):
+    try:
+        result = await client.write_register(address, value)
+        if result.isError():
+            logging.error(f"Error writing to register {address}: {result}")
+        else:
+            logging.info(f"Successfully wrote value {value} to register {address}")
+    except ConnectionException as e:
+        logging.error(f"Connection error when writing to register {address}: {e}")
+
+def bit16_to_32(msb, lsb):
+    a = (msb << 16) + lsb
+    r = ~a + 1
+    return r * -1
+
+async def run_modbus_client(stop_event):
+    try:
+        async with AsyncModbusTcpClient('192.168.3.250', port=502) as client:
+            while not stop_event.is_set():
+                status = await read_register(client, 2058)
+                if status and status[0] == 1:
+                    lpm = await read_register(client, 2008)
+                    wp = await read_register(client, 2010)
+                    bp1 = await read_register(client, 2030)
+                    bp2 = await read_register(client, 2032)
+                    noise = await read_register(client, 2016)
+                    body = await client.read_holding_registers(2004, 2)
+                    cover = await client.read_holding_registers(2006, 2)
+
+                    if lpm and wp and bp1 and bp2 and noise and body and cover:
+                        LPM = lpm[0] / 100
+                        WP1 = wp[0]
+                        BP1 = bp1[0]
+                        BP2 = bp2[0]
+                        Noise = noise[0] / 100
+                        msb_body = body.registers[1]
+                        lsb_body = body.registers[0]
+                        Body = bit16_to_32(msb_body, lsb_body)
+                        msb_cover = cover.registers[1]
+                        lsb_cover = cover.registers[0]
+                        Cover = bit16_to_32(msb_cover, lsb_cover)
+
+                        # Log the values
+                        logging.info(f"LPM: {LPM}")
+                        logging.info(f"WP1: {WP1}")
+                        logging.info(f"BP1: {BP1}")
+                        logging.info(f"BP2: {BP2}")
+                        logging.info(f"Noise: {Noise}")
+                        logging.info(f"BODY: {Body}")
+                        logging.info(f"COVER: {Cover}")
+
+                        # Data captured
+                        logging.info("Data captured")
+
+                        # Create Date and Time variables
+                        Date = datetime.now().strftime('%Y-%m-%d')
+                        Time = datetime.now().strftime('%H:%M')
+
+                        # Create a list and log the Date and Time
+                        data_list = [Date, Time, Body, Cover, LPM, WP1, BP1, BP2, Noise]
+                        logging.info(f"Date: {Date}, Time: {Time}")
+
+                        # Update MongoDB
+                        update_mongodb(data_list)
+
+                        # Change the value of register 2058 to 3
+                        await write_register(client, 2058, 3)
+
+                await asyncio.sleep(1)
+
+    except ConnectionException as e:
+        logging.error(f"Connection to PLC failed: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    stop_event = threading.Event()
+    try:
+        asyncio.run(run_modbus_client(stop_event))
+    except KeyboardInterrupt:
+        stop_event.set()
+        logging.info("Modbus client stopped.")
+#=================================
+#db_and_update_box.py
+import threading
+import pandas as pd
+from datetime import datetime
+import os
+import time
+import logging
+from db_connection import get_db_collection
+
+# Configure logging for db_and_update_box.py
+log_file_path = 'app_logs/db_and_update_box.log'
+os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
+
+# Paths to the uploaded Excel files
+gear_file_path = 'import/import_gear.xlsx'
+box_file_path = 'import/import_box.xlsx'
+output_file_path = 'temp/gear_data.csv'
+
+# Expected columns based on the new specification
+expected_columns = [
+    'Date', 'Time', 'BODY', 'COVER', '12T NB', '12T WB', '26T', 
+    '28T', 'LPM', 'WP1', 'BP1', 'BP2', 'Noise', 'Box No'
+]
+
+def load_gear_data():
+    # Load the Excel file for gear data
+    data = pd.read_excel(gear_file_path)
+
+    # Ensure all expected columns are present, add missing ones with "NA" as string
+    for column in expected_columns:
+        if column not in data.columns:
+            data[column] = "NA"
+
+    # Reorder the DataFrame to match the expected columns sequence
+    data = data[expected_columns]
+    return data
+
+def filter_new_rows(data):
+    """
+    Filter out rows where the 'BODY' value already exists in MongoDB.
+    """
+    # Get the MongoDB collection
+    collection = get_db_collection()
+
+    # Fetch existing 'BODY' values from the database
+    existing_records = list(collection.find({}, {'_id': 0, 'BODY': 1}))
+    existing_df = pd.DataFrame(existing_records)
+
+    # If there are no existing records, all rows are new
+    if existing_df.empty:
+        return data
+
+    # Filter out rows where 'BODY' is already in the database
+    new_data = data[~data['BODY'].isin(existing_df['BODY'])]
+
+    return new_data
+
+def insert_into_db(data=None):
+    """
+    Insert only new data into MongoDB.
+    """
+    if data is None:
+        data = load_gear_data()
+
+    # Filter out rows that already exist in the database
+    data = filter_new_rows(data)
+    
+    # If there are no new rows to insert, exit the function
+    if data.empty:
+        print("No new data to insert.")
+        return
+
+    string_columns = ['12T NB', '12T WB', '26T', '28T']
+    for col in string_columns:
+        data[col] = data[col].apply(lambda x: "{:.0E}".format(x).replace("+", "") if isinstance(x, (int, float)) else str(x))
+    
+    # Ensure 'Box No' column is an integer
+    data['Box No'] = pd.to_numeric(data['Box No'], errors='coerce').fillna(0).astype(int)
+
+    # Get the current date and time
+    current_datetime = datetime.now()
+
+    # Add 'Insertion Date' and 'Insertion Time' columns
+    data['Insertion Date'] = current_datetime.date().isoformat()
+    data['Insertion Time'] = current_datetime.time().isoformat()
+
+    # Save the DataFrame to a CSV file
+    data.to_csv(output_file_path, index=False)
+
+    # Convert DataFrame to a list of dictionaries
+    data_dict = data.to_dict(orient='records')
+
+    # Get the MongoDB collection
+    collection = get_db_collection()
+
+    # Insert the data into the collection
+    collection.insert_many(data_dict)
+
+    print(f"New data inserted successfully into MongoDB and saved to {output_file_path}.")
+
+def load_box_data():
+    # Load the Excel file for box data
+    data = pd.read_excel(box_file_path)
+    return data
+
+def update_box_data(data=None):
+    if data is None:
+        data = load_box_data()
+
+    # Convert 'Box No' column to numeric, coerce errors to NaN, and fill NaN with 0
+    data['Box No'] = pd.to_numeric(data['Box No'], errors='coerce').fillna(0).astype(int)
+
+    # Get the MongoDB collection
+    collection = get_db_collection()
+
+    # Iterate over the DataFrame rows and update the MongoDB collection
+    for index, row in data.iterrows():
+        body = row["BODY"]
+        box_no = row["Box No"]  # Box No is already an integer
+
+        # Update all documents in the collection where BODY matches
+        collection.update_many(
+            {"BODY": body},
+            {"$set": {"Box No": box_no}}
+        )
+    print("Box data updated successfully.")
+
+def monitor_files(stop_event):
+    """
+    Monitor the Excel files for changes and process new data if the files change.
+    """
+    gear_last_modified_time = None
+    box_last_modified_time = None
+
+    while not stop_event.is_set():
+        try:
+            # Check if the gear file has been modified
+            current_gear_modified_time = os.path.getmtime(gear_file_path)
+            if gear_last_modified_time is None or current_gear_modified_time != gear_last_modified_time:
+                print("Detected change in gear data, processing new data...")
+                gear_data = load_gear_data()
+                insert_into_db(gear_data)
+                gear_last_modified_time = current_gear_modified_time
+            else:
+                print("No change detected in gear data.")
+
+            # Check if the box file has been modified
+            current_box_modified_time = os.path.getmtime(box_file_path)
+            if box_last_modified_time is None or current_box_modified_time != box_last_modified_time:
+                print("Detected change in box data, updating box numbers...")
+                box_data = load_box_data()
+                update_box_data(box_data)
+                box_last_modified_time = current_box_modified_time
+            else:
+                print("No change detected in box data.")
+
+            time.sleep(5)
+        
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            time.sleep(5)
+
+if __name__ == "__main__":
+    stop_event = threading.Event()
+    monitor_files(stop_event)

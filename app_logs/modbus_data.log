@@ -1,0 +1,12 @@
+2024-09-05 12:33:11,934 - the main.py file
+2024-09-05 12:33:11,934 - Detected change in gear data, processing new data...
+2024-09-05 12:33:12,450 - No new data to insert.
+2024-09-05 12:33:12,450 - Detected change in box data, updating box numbers...
+2024-09-05 12:33:12,481 - Box data updated successfully.
+2024-09-05 12:33:14,938 - Failed to connect 
+2024-09-05 12:33:14,938 - Connection error when reading register 2058: Modbus Error: [Connection] Not connected[AsyncModbusTcpClient 192.168.3.250:502]
+2024-09-05 12:33:15,946 - Connection error when reading register 2058: Modbus Error: [Connection] Not connected[AsyncModbusTcpClient 192.168.3.250:502]
+2024-09-05 12:33:16,954 - Connection error when reading register 2058: Modbus Error: [Connection] Not connected[AsyncModbusTcpClient 192.168.3.250:502]
+2024-09-05 12:33:17,943 - Closing application...
+2024-09-05 12:33:17,967 - Modbus client stopped.
+2024-09-05 12:33:22,538 - Application closed successfully.

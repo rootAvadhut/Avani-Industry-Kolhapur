@@ -1,9 +1,31 @@
+import asyncio
 import threading
 import pandas as pd
 from datetime import datetime
 import os
-import time
 from db_connection import get_db_collection
+import logging
+# logger = logging.getLogger('db_and_update_box')
+
+
+# Configure logging for db_and_update_box.py
+log_file_path = 'app_logs/db_and_update_box.log'
+os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+# logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
+# logger = logging.getLogger('db_and_update_box')
+# logger.setLevel(logging.INFO)
+
+# log_file_path = './app_logs/db_and_update_box.log'
+# log_dir=os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+# if log_dir:
+#     os.makedirs(log_dir, exist_ok=True)
+
+# handler = logging.FileHandler(log_file_path)
+# formatter = logging.Formatter('%(asctime)s - %(message)s')
+# handler.setFormatter(formatter)
+
+# logger.addHandler(handler)
 
 # Paths to the uploaded Excel files
 gear_file_path = 'import/import_gear.xlsx'
@@ -119,7 +141,7 @@ def update_box_data(data=None):
         )
     print("Box data updated successfully.")
 
-def monitor_files(stop_event):
+async def monitor_files(stop_event):
     """
     Monitor the Excel files for changes and process new data if the files change.
     """
@@ -131,28 +153,28 @@ def monitor_files(stop_event):
             # Check if the gear file has been modified
             current_gear_modified_time = os.path.getmtime(gear_file_path)
             if gear_last_modified_time is None or current_gear_modified_time != gear_last_modified_time:
-                print("Detected change in gear data, processing new data...")
+                logging.info("Detected change in gear data, processing new data...")
                 gear_data = load_gear_data()
                 insert_into_db(gear_data)
                 gear_last_modified_time = current_gear_modified_time
-            else:
-                print("No change detected in gear data.")
+            # else:
+            #     print("No change detected in gear data.")
 
             # Check if the box file has been modified
             current_box_modified_time = os.path.getmtime(box_file_path)
             if box_last_modified_time is None or current_box_modified_time != box_last_modified_time:
-                print("Detected change in box data, updating box numbers...")
+                logging.info("Detected change in box data, updating box numbers...")
                 box_data = load_box_data()
                 update_box_data(box_data)
                 box_last_modified_time = current_box_modified_time
-            else:
-                print("No change detected in box data.")
+            # else:
+            #     print("No change detected in box data.")
 
-            time.sleep(5)
+            await asyncio.sleep(5) 
         
         except Exception as e:
-            print(f"Error occurred: {e}")
-            time.sleep(5)
+            logging.error(f"Error monitoring files: {e}")
+            await asyncio.sleep(5)
 
 if __name__ == "__main__":
     stop_event = threading.Event()
