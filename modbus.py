@@ -5,9 +5,6 @@ from datetime import datetime
 from db_connection import get_db_collection
 import os
 
-# Replace logging with print statements for faster performance
-log_file_path = 'app_logs/modbus_data.log'
-os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
 def update_mongodb(data_list):
     """
@@ -18,13 +15,13 @@ def update_mongodb(data_list):
     # Extract values from data_list
     date_str = data_list[0]
     time_str = data_list[1]
-    body = data_list[2]
-    cover = data_list[3]
-    lpm = data_list[4]
-    wp1 = data_list[5]
-    bp1 = data_list[6]
-    bp2 = data_list[7]
-    noise = data_list[8]
+    body = int(data_list[2])  # Convert numpy.int64 to int
+    cover = int(data_list[3])  # Convert numpy.int64 to int
+    lpm = float(data_list[4])  # Ensure lpm is a float
+    wp1 = int(data_list[5])  # Ensure wp1 is an int
+    bp1 = int(data_list[6])  # Ensure bp1 is an int
+    bp2 = int(data_list[7])  # Ensure bp2 is an int
+    noise = float(data_list[8])  # Ensure noise is a float
     
     update_document = {
         'Date': date_str,

@@ -1,5 +1,5 @@
 import asyncio
-import threading
+import numpy as np
 import pandas as pd
 from datetime import datetime
 import os
@@ -72,12 +72,13 @@ def insert_into_db(data=None):
     # Save to CSV
     data.to_csv(output_file_path, index=False)
 
-    # Insert new rows into MongoDB
-    data_dict = data.to_dict(orient='records')
+    # Convert data to standard Python types before insertion
+    data_dict = data.applymap(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
     collection = get_db_collection()
     collection.insert_many(data_dict)
 
     print(f"New data inserted successfully into MongoDB and saved to {output_file_path}.")
+
 
 def load_box_data():
     """Loads box data from the specified Excel file."""
@@ -93,14 +94,25 @@ def update_box_data(data=None):
     # Convert 'Box No' to an integer
     data['Box No'] = pd.to_numeric(data['Box No'], errors='coerce').fillna(0).astype(int)
 
+    # Ensure 'BODY' is also converted to int
+    data['BODY'] = pd.to_numeric(data['BODY'], errors='coerce').fillna(0).astype(int)
+
     # Update MongoDB records
     collection = get_db_collection()
     for index, row in data.iterrows():
         body = row["BODY"]
         box_no = row["Box No"]
+
+        # Ensure body and box_no are converted to int if they are numpy.int64
+        if isinstance(body, np.int64):
+            body = int(body)
+        if isinstance(box_no, np.int64):
+            box_no = int(box_no)
+
         collection.update_many({"BODY": body}, {"$set": {"Box No": box_no}})
 
     print("Box data updated successfully.")
+
 
 async def monitor_files(stop_event):
     """Monitors the gear and box files for changes and triggers appropriate actions."""
