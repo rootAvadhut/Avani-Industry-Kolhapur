@@ -1,6 +1,5 @@
 from imports import tk, ttk, tkFont, DateEntry, pd, datetime, messagebox
 from create_treeview import create_treeview_frame
-# from search_body_no import search_by_body_no
 from db_connection import get_db_collection
 import os
 
@@ -85,7 +84,7 @@ def show_home_screen(main_frame):
                 return
         
             # Save the DataFrame to a CSV file
-            df.to_csv('temp/date_data.csv', index=False)
+            df.to_csv('./temp/date_data.csv', index=False)
 
             # Update the treeview with the new data
             create_treeview_frame(main_frame, 'temp/date_data.csv')
@@ -132,7 +131,7 @@ def show_home_screen(main_frame):
             df['Box No'] = pd.to_numeric(df['Box No'], errors='coerce').fillna(0).astype(int)
 
             # Ensure the export directory exists
-            export_dir = 'export'
+            export_dir = './export'
             os.makedirs(export_dir, exist_ok=True)
 
             # Create the file paths with the current date
@@ -156,7 +155,7 @@ def show_home_screen(main_frame):
     export_button.grid(row=2, column=4, padx=5, pady=5, sticky="e")
 
     # Data Table (Treeview)
-    file_path = 'temp/home_default_data.csv'
+    file_path = './temp/home_default_data.csv'
     treeview_frame = create_treeview_frame(main_frame, file_path)
 
     # Configure grid layout for resizing

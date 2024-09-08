@@ -1,5 +1,4 @@
 import threading  # Import threading to run background tasks
-import os  # Import os to interact with the operating system
 import tkinter as tk  # Import tkinter for GUI
 import tkinter.font as tkFont  # Import tkinter font for custom fonts in GUI
 from tkinter import messagebox  # Import messagebox to show error dialogs
@@ -7,6 +6,7 @@ import asyncio  # Import asyncio to run async functions
 from imports import show_home_screen, show_delete_screen, show_backup_screen  # Import custom functions for different screens
 from db_and_update_box import monitor_files  # Import monitor_files from db_and_update_box
 from modbus import run_modbus_client  # Import run_modbus_client from modbus
+
 
 # Create an event to signal the background threads to stop
 stop_event = threading.Event()

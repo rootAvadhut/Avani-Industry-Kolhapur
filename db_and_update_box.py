@@ -6,9 +6,9 @@ import os
 from db_connection import get_db_collection
 
 # Paths to the uploaded Excel files
-gear_file_path = 'import/import_gear.xlsx'
-box_file_path = 'import/import_box.xlsx'
-output_file_path = 'temp/gear_data.csv'
+gear_file_path = './import/import_gear.xlsx'
+box_file_path = './import/import_box.xlsx'
+output_file_path = './temp/gear_data.csv'
 
 # Expected columns based on the new specification
 expected_columns = [
@@ -73,7 +73,13 @@ def insert_into_db(data=None):
     data.to_csv(output_file_path, index=False)
 
     # Convert data to standard Python types before insertion
-    data_dict = data.applymap(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
+    # data_dict = data.applymap(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
+    # This line is triggering the warning
+    # data_dict = data.applymap(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
+
+    # If working on a Series (a single column at a time), use map like this:
+    data_dict = data.apply(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
+
     collection = get_db_collection()
     collection.insert_many(data_dict)
 

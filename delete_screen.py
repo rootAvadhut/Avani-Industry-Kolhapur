@@ -1,7 +1,6 @@
 import pandas as pd
 from imports import tk, ttk, tkFont, messagebox, simpledialog
 from create_treeview import create_treeview_frame
-# from search_body_no import search_by_body_no
 from db_connection import get_db_collection,get_backup_db_collection
 
 
@@ -82,7 +81,7 @@ def show_delete_screen(main_frame):
     search_by_body_no_button.grid(row=0, column=4, padx=5, pady=5, sticky="e")
     
     # Data Table (Treeview)
-    file_path = r'E:\project_3\16-07-2024\project\temp\delete_default_data.csv'
+    file_path = './temp/delete_default_data.csv'
     treeview_frame = create_treeview_frame(main_frame, file_path)
 
     # Configure grid layout for resizing
@@ -136,7 +135,7 @@ def search_by_body_no(body_no, main_frame):
 
     # Save the results to a CSV file
     df = pd.DataFrame(results)
-    file_path = r'E:\project_3\16-07-2024\project\temp\one_Search_data.csv'
+    file_path = './temp/one_Search_data.csv'
     df.to_csv(file_path, index=False)
 
     # Clear existing treeview frame if it exists

@@ -1,6 +1,8 @@
 import asyncio
 from pymodbus.client import AsyncModbusTcpClient
 
+from modbus import read_register
+
 async def run_modbus_client_LPM():
     # Create an asynchronous Modbus TCP client
     async with AsyncModbusTcpClient('192.168.3.250', port=502) as client:
@@ -126,6 +128,8 @@ async def run_modbus_client_body_no():
            msb = result.registers[1]
            lsb = result.registers[0]
            print("body_no",bit16_to_32(msb,lsb))
+           status = await read_register(client, 2058)
+           print(status[0])
           
           
 
@@ -147,6 +151,8 @@ async def run_modbus_client_cover_no():
            msb = result.registers[1]
            lsb = result.registers[0]
            print("cover_no",bit16_to_32(msb,lsb))
+
+
           
 asyncio.run(run_modbus_client_body_no())       
 asyncio.run(run_modbus_client_cover_no())

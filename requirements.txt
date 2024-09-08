@@ -2,3 +2,7 @@ tkcalendar
 pymongo
 pandas  
 openpyxl
+asyncio
+numpy
+pymodbus
+tkinter

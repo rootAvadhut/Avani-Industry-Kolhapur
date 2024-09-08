@@ -1,0 +1,38 @@
+The error you're encountering (`WinError 225: Operation did not complete successfully because the file contains a virus or potentially unwanted software`) is likely due to Windows Defender or your antivirus software falsely flagging PyInstaller’s output files as a potential threat.
+
+To resolve this issue, follow these steps:
+
+### 1. **Whitelist or Exclude the Directory**
+Windows Defender or other antivirus software may be blocking some operations that PyInstaller needs to perform. You can temporarily disable real-time protection or whitelist your project directory in your antivirus software.
+
+#### Steps to Exclude in Windows Defender:
+1. Open **Windows Security**.
+2. Go to **Virus & threat protection**.
+3. Click **Manage settings** under **Virus & threat protection settings**.
+4. Scroll to **Exclusions** and click **Add or remove exclusions**.
+5. Select **Add an exclusion**, choose **Folder**, and select the folder where your project files reside (e.g., `E:\05-09-2024\test`).
+
+### 2. **Run PyInstaller as Administrator**
+Some operations that PyInstaller performs (such as creating the final executable) require higher privileges.
+
+1. Open **Command Prompt** as an Administrator:
+   - Search for "cmd" in the Start menu.
+   - Right-click **Command Prompt** and choose **Run as administrator**.
+2. Try running the PyInstaller command again:
+   ```bash
+   pyinstaller --onefile --add-data "backup-export;backup-export" --add-data "export;export" --add-data "import;import" --add-data "temp;temp" --noconsole main.py
+   ```
+
+### 3. **Check PyInstaller Configuration**
+Sometimes specific files, such as icons or resource files, can trigger this error. If you're using a custom icon, try running PyInstaller without an icon to rule out any issues with icon embedding:
+```bash
+pyinstaller --onefile --noconsole main.py
+```
+
+### 4. **Disable Antivirus Temporarily (if safe)**
+If none of the above solutions work, you may need to temporarily disable your antivirus software during the build process. Make sure to re-enable it after running the PyInstaller command.
+
+Let me know if any of these solutions work or if the issue persists!
+
+before running this command make sure your code is correct and given path 
+pyinstaller main.spec
