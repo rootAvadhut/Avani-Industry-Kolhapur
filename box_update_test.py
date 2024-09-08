@@ -31,7 +31,7 @@ def load_gear_data():
     return data
 
 def filter_new_rows(data):
-    """Filters out rows that already exist in the MongoDB based on 'BODY' field."""
+    """Filters out rows that already exist in the MongoDB based on the 'BODY' field."""
     print("Filtering new rows from the data.")
     collection = get_db_collection()
 
@@ -74,11 +74,6 @@ def insert_into_db(data=None):
     data.to_csv(output_file_path, index=False)
 
     # Convert data to standard Python types before insertion
-    # data_dict = data.applymap(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
-    # This line is triggering the warning
-    # data_dict = data.applymap(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
-
-    # If working on a Series (a single column at a time), use map like this:
     data_dict = data.apply(lambda x: int(x) if isinstance(x, np.int64) else x).to_dict(orient='records')
 
     collection = get_db_collection()
@@ -148,4 +143,3 @@ async def monitor_files(stop_event):
 
         # Sleep before checking the files again
         await asyncio.sleep(1)
-

@@ -2,6 +2,7 @@ from imports import tk, ttk, tkFont, DateEntry, pd, datetime, messagebox
 from create_treeview import create_treeview_frame
 from db_connection import get_db_collection
 import os
+from relative_path import get_resource_path
 
 def show_home_screen(main_frame):
     """
@@ -84,10 +85,10 @@ def show_home_screen(main_frame):
                 return
         
             # Save the DataFrame to a CSV file
-            df.to_csv('./temp/date_data.csv', index=False)
+            df.to_csv(get_resource_path('C:/project/temp/date_data.csv'), index=False)
 
             # Update the treeview with the new data
-            create_treeview_frame(main_frame, 'temp/date_data.csv')
+            create_treeview_frame(main_frame, get_resource_path('C:/project/temp/date_data.csv'))
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
@@ -131,7 +132,7 @@ def show_home_screen(main_frame):
             df['Box No'] = pd.to_numeric(df['Box No'], errors='coerce').fillna(0).astype(int)
 
             # Ensure the export directory exists
-            export_dir = './export'
+            export_dir = get_resource_path('D:/project/export')
             os.makedirs(export_dir, exist_ok=True)
 
             # Create the file paths with the current date
@@ -155,7 +156,7 @@ def show_home_screen(main_frame):
     export_button.grid(row=2, column=4, padx=5, pady=5, sticky="e")
 
     # Data Table (Treeview)
-    file_path = './temp/home_default_data.csv'
+    file_path = get_resource_path('C:/project/config/home_default_data.csv')
     treeview_frame = create_treeview_frame(main_frame, file_path)
 
     # Configure grid layout for resizing
@@ -182,7 +183,7 @@ def search_by_body_no(body_no, main_frame):
 
     # Save the results to a CSV file
     df = pd.DataFrame(results)
-    file_path = 'temp/one_Search_data.csv'
+    file_path = get_resource_path('C:/project/temp/one_Search_data.csv')
     df.to_csv(file_path, index=False)
 
     # Clear existing treeview frame if it exists

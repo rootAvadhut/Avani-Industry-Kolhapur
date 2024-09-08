@@ -2,6 +2,7 @@ import pandas as pd
 from imports import tk, ttk, tkFont, messagebox, simpledialog
 from create_treeview import create_treeview_frame
 from db_connection import get_db_collection,get_backup_db_collection
+from relative_path import get_resource_path
 
 
 def backup_and_delete_body_no(body_no):
@@ -81,7 +82,7 @@ def show_delete_screen(main_frame):
     search_by_body_no_button.grid(row=0, column=4, padx=5, pady=5, sticky="e")
     
     # Data Table (Treeview)
-    file_path = './temp/delete_default_data.csv'
+    file_path = get_resource_path('C:/project/config/delete_default_data.csv')
     treeview_frame = create_treeview_frame(main_frame, file_path)
 
     # Configure grid layout for resizing
@@ -102,7 +103,7 @@ def show_delete_screen(main_frame):
 
         if password is None:  # This checks if the user clicked Cancel
             return  # Exit the function without any further action
-        if password == "avadhut9":  # Replace with the actual password
+        if password == "avani":  # Replace with the actual password
             result = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete?")
             if result:
                 backup_and_delete_body_no(body_no)
@@ -135,7 +136,7 @@ def search_by_body_no(body_no, main_frame):
 
     # Save the results to a CSV file
     df = pd.DataFrame(results)
-    file_path = './temp/one_Search_data.csv'
+    file_path = get_resource_path('C:/project/temp/one_Search_data.csv')
     df.to_csv(file_path, index=False)
 
     # Clear existing treeview frame if it exists
